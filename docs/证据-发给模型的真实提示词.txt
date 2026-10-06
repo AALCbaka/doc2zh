@@ -1,0 +1,301 @@
+
+================================================================================
+未命中: 长度=2942 首 40 字='\nYou are an expert multilingual terminol'
+--------------------------------------------------------------------------------
+
+You are an expert multilingual terminologist. Extract key terms from the text and translate them into zh-CN.
+
+### Extraction Rules
+1. Include only: named entities (people, orgs, locations, theorem/algorithm names, dates) and domain-specific nouns/noun phrases essential to meaning.
+2. No full sentences. Ignore function words.
+3. Use minimal noun phrases (≤5 words unless a named entity). No generic academic nouns (e.g., model, case, property) unless part of a standard term.
+4. No mathematical items: variables (X1, a, ε), symbols (=, +, →, ⊥⊥, ∈), subscripts/superscripts, formula fragments, mappings (T: H1→H2), etc. Keep only natural-language concepts.
+5. Extract each term once. Keep order of first appearance.
+
+### Translation Rules
+1. Translate each term into zh-CN.
+2. If in the reference glossary, use its translation exactly.
+3. Keep proper names in original language unless a well-known translation exists.
+4. Ensure consistent translations.
+
+
+
+### Output Format
+- Return ONLY a valid JSON array.
+- Each element: {"src": "...", "tgt": "..."}.
+- No comments, no backticks, no extra text.
+- If no terms: [].
+
+### Example
+For terms “LLM”, “GPT”:
+[
+  {"src": "LLM", "tgt": "大语言模型"},
+  {"src": "GPT", "tgt": "GPT"}
+]
+
+Input Text:
+```
+Chapter 1 – Defining and Collecting Data
+
+ISOM2002 STATISTICS AND DATA ANALYSIS
+
+Most analysts focus on the cost of tuition as the way to measure the cost of a college education. But incidentals, such as textbook costs, are rarely considered. A researcher at University of Macau (UM) wishes to estimate the textbook costs of first-year students at UM during the academic year 2026/2027. To do so, he monitored the textbook cost of 250 first-year students and found that their average textbook cost was $600 per semester.
+
+(Multiple Choice)
+
+6. Identify the population of interest to the researcher. a) All UM students during the academic year 2026/2027. b) All college students in Macao during the academic year 2026/2027. c) All first-year UM students during the academic year 2026/2027. d) The 250 students who were monitored.
+
+7. Identify the variable of interest to the researcher. a) The textbook cost of first-year UM students. b) The year in school of UM students. c) The age of UM students. d) The cost of incidental expenses of UM students.
+
+8. Identify the sample in the study. a) All UM students. b) All college students in Macao. c) All first-year UM students. d) The 250 students that were monitored.
+
+9. The classification of student major (accounting, economics, management, marketing, other) is an example of a) a categorical variable. b) a discrete numerical variable. c) a continuous numerical variable.
+
+10.The number of students in the sample is an example of a) a categorical variable. b) a discrete numerical variable. c) a continuous numerical variable.
+
+Suggested Exercises:
+
+ Pg. 51: Qs. 1.4, 1.6, and 1.8  Pg. 52: Qs. 1.12(a)
+```
+
+Return JSON ONLY. NO OTHER TEXT.
+Result:
+
+
+================================================================================
+未命中: 长度=4106 首 40 字='You are a professional zh-CN native tran'
+--------------------------------------------------------------------------------
+You are a professional zh-CN native translator who needs to fluently translate text into zh-CN.
+
+Follow all rules strictly.
+
+## Structure Rules
+1. Keep **the same number of paragraphs as the input**.
+2. Input paragraphs may be **sliced pieces of the same original paragraph**.  
+   → You MUST treat each input paragraph **as an independent, fixed unit**.  
+   → Do NOT merge paragraphs, split paragraphs, or move content between paragraphs.
+3. Inside each paragraph, you may adjust word order for fluency, but:
+   - Do NOT change the meaning.
+   - Do NOT move placeholders, tags, or code outside their paragraph.
+4. Translate ALL human-readable content into zh-CN.
+
+## Do NOT Modify
+- Tags (e.g., <style>, <b>, <code>): keep them exactly the same.  
+  *Translate tag-internal text except code blocks (<code>…</code>)*.
+- Placeholders: `{v1}`, `{name}`, `%s`, `%d`, `[[...]]`, `%%...%%` — keep exactly unchanged.
+- JSON keys or structure.
+
+## Glossary
+If a glossary is provided:
+- Always use the exact target term.
+- Apply glossary items even inside tags or when broken by hyphens/line breaks.
+- If glossary does NOT include a term, translate it naturally.
+
+
+## Output Format
+Return a JSON array of the same length.  
+For each item:
+- Keep the same "id" and remove other fields like "input" and "layout_label".
+- Add "output" with the translated text only.
+- No extra text, no ```json blocks.
+
+## Style
+- Produce fluent, professional zh-CN.
+- Preserve punctuation unless needed for target language fluency.
+
+### Example
+Input:
+[
+    {
+    "id": 0,
+    "input": "{v1}<style id='2'>hello</style>, world!",
+    "layout_label": "text"
+    }
+]
+Output:
+[
+    {
+    "id": 0,
+    "output": "{v1}<style id='2'>你好</style>，世界！"
+    }
+]
+
+## Contextual Hints for Better Translation
+1. First title in full text: ISOM2002 STATISTICS AND DATA ANALYSIS
+
+
+## Glossary Tables
+
+### Glossary: auto_extracted_glossary
+
+| Source Term | Target Term |
+|-------------|-------------|
+| Chapter 1 – Defining and Collecting Data | 第1章——定义与收集数据 |
+| ISOM2002 STATISTICS AND DATA ANALYSIS | ISOM2002 统计学与数据分析 |
+| UM students | 澳大学生 |
+| University of Macau (UM) | 澳门大学（UM） |
+| academic year 2026/2027 | 2026/2027学年 |
+| age of UM students | 澳大学生的年龄 |
+| college education | 大学教育 |
+| college students in Macao | 澳门大学生 |
+| cost of incidental expenses | 杂项费用成本 |
+| cost of tuition | 学费成本 |
+| first-year UM students | 澳大一年级学生 |
+| first-year students | 一年级学生 |
+| incidentals | 杂费 |
+| population of interest | 目标总体 |
+| textbook cost of first-year UM students | 澳大一年级学生的教材费用 |
+| textbook costs | 教材费用 |
+| variable of interest | 目标变量 |
+| year in school | 年级 |
+
+
+## Here is the input:
+
+[
+  {
+    "id": 0,
+    "input": "Chapter 1 – Defining and Collecting Data",
+    "layout_label": "abandon"
+  },
+  {
+    "id": 1,
+    "input": "ISOM2002 STATISTICS AND DATA ANALYSIS",
+    "layout_label": "title"
+  },
+  {
+    "id": 2,
+    "input": "Most analysts focus on the cost of tuition as the way to measure the cost of a college education. But incidentals, such as textbook costs, are rarely considered. A researcher at University of Macau (UM) wishes to estimate the textbook costs of first-year students at UM during the academic year 2026/2027. To do so, he monitored the textbook cost of 250 first-year students and found that their average textbook cost was $600 per semester.",
+    "layout_label": "plain text"
+  },
+  {
+    "id": 3,
+    "input": "(Multiple Choice)",
+    "layout_label": "plain text"
+  },
+  {
+    "id": 4,
+    "input": "6. Identify the population of interest to the researcher. a) All UM students during the academic year 2026/2027. b) All college students in Macao during the academic year 2026/2027. c) All first-year UM students during the academic year 2026/2027. d) The 250 students who were monitored.",
+    "layout_label": "plain text"
+  },
+  {
+    "id": 5,
+    "input": "7. Identify the variable of interest to the researcher. a) The textbook cost of first-year UM students. b) The year in school of UM students. c) The age of UM students. d) The cost of incidental expenses of UM students.",
+    "layout_label": "plain text"
+  }
+]
+
+================================================================================
+未命中: 长度=3401 首 40 字='You are a professional zh-CN native tran'
+--------------------------------------------------------------------------------
+You are a professional zh-CN native translator who needs to fluently translate text into zh-CN.
+
+Follow all rules strictly.
+
+## Structure Rules
+1. Keep **the same number of paragraphs as the input**.
+2. Input paragraphs may be **sliced pieces of the same original paragraph**.  
+   → You MUST treat each input paragraph **as an independent, fixed unit**.  
+   → Do NOT merge paragraphs, split paragraphs, or move content between paragraphs.
+3. Inside each paragraph, you may adjust word order for fluency, but:
+   - Do NOT change the meaning.
+   - Do NOT move placeholders, tags, or code outside their paragraph.
+4. Translate ALL human-readable content into zh-CN.
+
+## Do NOT Modify
+- Tags (e.g., <style>, <b>, <code>): keep them exactly the same.  
+  *Translate tag-internal text except code blocks (<code>…</code>)*.
+- Placeholders: `{v1}`, `{name}`, `%s`, `%d`, `[[...]]`, `%%...%%` — keep exactly unchanged.
+- JSON keys or structure.
+
+## Glossary
+If a glossary is provided:
+- Always use the exact target term.
+- Apply glossary items even inside tags or when broken by hyphens/line breaks.
+- If glossary does NOT include a term, translate it naturally.
+
+
+## Output Format
+Return a JSON array of the same length.  
+For each item:
+- Keep the same "id" and remove other fields like "input" and "layout_label".
+- Add "output" with the translated text only.
+- No extra text, no ```json blocks.
+
+## Style
+- Produce fluent, professional zh-CN.
+- Preserve punctuation unless needed for target language fluency.
+
+### Example
+Input:
+[
+    {
+    "id": 0,
+    "input": "{v1}<style id='2'>hello</style>, world!",
+    "layout_label": "text"
+    }
+]
+Output:
+[
+    {
+    "id": 0,
+    "output": "{v1}<style id='2'>你好</style>，世界！"
+    }
+]
+
+## Contextual Hints for Better Translation
+1. First title in full text: ISOM2002 STATISTICS AND DATA ANALYSIS
+2. The most recent title is: Suggested Exercises:
+
+
+## Glossary Tables
+
+### Glossary: auto_extracted_glossary
+
+| Source Term | Target Term |
+|-------------|-------------|
+| Suggested Exercises | 建议练习 |
+| UM students | 澳大学生 |
+| accounting | 会计 |
+| categorical variable | 分类变量 |
+| college students in Macao | 澳门大学生 |
+| continuous numerical variable | 连续数值变量 |
+| discrete numerical variable | 离散数值变量 |
+| economics | 经济学 |
+| first-year UM students | 澳大一年级学生 |
+| management | 管理学 |
+| marketing | 市场营销 |
+| number of students in the sample | 样本中的学生人数 |
+| sample | 样本 |
+| student major | 学生专业 |
+
+
+## Here is the input:
+
+[
+  {
+    "id": 0,
+    "input": "8. Identify the sample in the study. a) All UM students. b) All college students in Macao. c) All first-year UM students. d) The 250 students that were monitored.",
+    "layout_label": "plain text"
+  },
+  {
+    "id": 1,
+    "input": "9. The classification of student major (accounting, economics, management, marketing, other) is an example of a) a categorical variable. b) a discrete numerical variable. c) a continuous numerical variable.",
+    "layout_label": "plain text"
+  },
+  {
+    "id": 2,
+    "input": "10.The number of students in the sample is an example of a) a categorical variable. b) a discrete numerical variable. c) a continuous numerical variable.",
+    "layout_label": "plain text"
+  },
+  {
+    "id": 3,
+    "input": "Suggested Exercises:",
+    "layout_label": "title"
+  },
+  {
+    "id": 4,
+    "input": "{v1}Pg. 51: Qs. 1.4, 1.6, and 1.8{v2}Pg. 52: Qs. 1.12(a)",
+    "layout_label": "plain text"
+  }
+]

@@ -1,0 +1,41 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pylibs/
+
+# ---- 本项目运行时产物 ----
+jobs/
+output/
+*.log
+
+# ---- 术语表是个人数据，不随仓库走 ----
+# （仓库里只放一个示例：下面这行用 ! 例外保留 examples/）
+glossaries/
+!glossaries/index.json
+!glossaries/*.example.csv
+
+# ---- 打包产物（体积大，走 GitHub Release 而不是提交进仓库）----
+dist/
+build/offline/
+build/pdf-translator/
+*.spec.bak
+
+# ---- 模型与字体的本地缓存（首次运行下载，约 340MB）----
+.cache/
+offline_assets_*.zip
+
+# ---- 不要提交任何密钥 ----
+.env
+config.json
+*secret*
+*apikey*
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+~$*

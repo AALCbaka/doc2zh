@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PDF 中英对照翻译 · DeepSeek + BabelDOC</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --ink:#0f172a; --ink-2:#475569; --ink-3:#94a3b8;
+    --line:#e6eaf2; --brand:#2563eb; --brand-2:#7c3aed; --brand-soft:#eef4ff;
+    --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 24px -12px rgba(15,23,42,.18);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand);text-decoration:none}
+  header.top{
+    position:sticky;top:0;z-index:30;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .top-inner{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px}
+  .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;box-shadow:0 4px 12px -4px rgba(37,99,235,.6)}
+  .brand{font-weight:700;font-size:16px;letter-spacing:.2px}
+  .brand small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);letter-spacing:0}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)}
+  .pill{padding:5px 11px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-weight:600;font-size:12px}
+  .pill.gray{background:#f1f5f9;color:var(--ink-2)}
+  .pill.warn{background:#fff7ed;color:#c2410c}
+  .pill.ok{background:#ecfdf5;color:#047857}
+
+  .hero{max-width:1180px;margin:0 auto;padding:34px 20px 10px}
+  .hero h1{margin:0 0 10px;font-size:30px;line-height:1.25;letter-spacing:-.4px}
+  .hero h1 span{background:linear-gradient(120deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{margin:0;color:var(--ink-2);font-size:14px;line-height:1.7;max-width:760px}
+  .feats{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .feat{font-size:12px;color:var(--ink-2);background:#fff;border:1px solid var(--line);padding:6px 11px;border-radius:999px}
+
+  main{max-width:1180px;margin:0 auto;padding:14px 20px 60px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media (max-width:960px){main{grid-template-columns:1fr}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-h{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .card-h h2{margin:0;font-size:15px;font-weight:700}
+  .card-h .sub{font-size:12px;color:var(--ink-3);margin-left:auto}
+  .card-b{padding:18px}
+
+  .drop{
+    border:1.5px dashed #c7d2e4;border-radius:14px;padding:30px 20px;text-align:center;
+    background:linear-gradient(180deg,#fbfdff,#f7f9fe);transition:.18s;cursor:pointer;
+  }
+  .drop:hover{border-color:var(--brand);background:#f5f9ff}
+  .drop.over{border-color:var(--brand);background:var(--brand-soft);transform:scale(.997)}
+  .drop .icon{width:46px;height:46px;margin:0 auto 12px;border-radius:13px;background:#fff;border:1px solid var(--line);
+    display:grid;place-items:center;box-shadow:var(--shadow)}
+  .drop .icon svg{width:22px;height:22px;stroke:var(--brand)}
+  .drop b{font-size:15px}
+  .drop p{margin:6px 0 0;font-size:12.5px;color:var(--ink-3)}
+  .file-chosen{display:none;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fbfdff}
+  .file-chosen.show{display:flex}
+  .file-chosen .fi{width:38px;height:38px;border-radius:10px;background:var(--brand-soft);display:grid;place-items:center;color:var(--brand);font-weight:700;font-size:11px}
+  .file-chosen .meta{min-width:0;flex:1}
+  .file-chosen .meta b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .file-chosen .meta span{font-size:12px;color:var(--ink-3)}
+
+  .field{margin-top:16px}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+  .field .hint{font-size:11.5px;color:var(--ink-3);margin-top:5px;line-height:1.6}
+  input[type=text],input[type=password],input[type=number],select{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;
+    background:#fbfcfe;color:var(--ink);font-family:inherit;transition:.15s;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .seg{display:flex;background:#f1f5f9;border-radius:11px;padding:3px;gap:3px}
+  .seg button{flex:1;border:0;background:transparent;padding:9px 8px;border-radius:8px;font-size:12.5px;font-weight:600;
+    color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.15s}
+  .seg button.on{background:#fff;color:var(--brand);box-shadow:0 1px 3px rgba(15,23,42,.1)}
+  .checks{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}
+  .check{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+  .check input{width:15px;height:15px;accent-color:var(--brand)}
+  details.adv{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+  details.adv summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink-2);list-style:none}
+  details.adv summary::-webkit-details-marker{display:none}
+  details.adv summary:before{content:"▸ ";color:var(--brand)}
+  details.adv[open] summary:before{content:"▾ "}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:11px;padding:12px 18px;
+    font-size:14px;font-weight:650;cursor:pointer;font-family:inherit;transition:.16s;width:100%}
+  .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;box-shadow:0 8px 20px -8px rgba(37,99,235,.7)}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink-2)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand)}
+  .btn-sm{padding:8px 13px;font-size:12.5px;width:auto;border-radius:9px}
+  .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .actions .btn{width:auto;flex:1;min-width:130px}
+
+  .empty{padding:38px 18px;text-align:center;color:var(--ink-3);font-size:13px}
+  .empty svg{width:40px;height:40px;stroke:#cbd5e1;margin-bottom:10px}
+  .progress-wrap{padding:2px 0 4px}
+  .pbar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}
+  .pbar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .35s}
+  .pmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);margin-top:9px}
+  .pmeta b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .stages{margin-top:14px;display:flex;flex-direction:column;gap:7px;max-height:190px;overflow:auto}
+  .stage{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2)}
+  .stage .dot{width:7px;height:7px;border-radius:50%;background:#cbd5e1;flex:none}
+  .stage.run .dot{background:var(--brand);box-shadow:0 0 0 4px rgba(37,99,235,.14)}
+  .stage.done .dot{background:var(--ok)}
+  .stage .t{margin-left:auto;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .logbox{margin-top:14px;background:#0f172a;color:#cbd5e1;border-radius:11px;padding:11px 13px;font-family:Consolas,Monaco,monospace;
+    font-size:11.5px;line-height:1.65;max-height:150px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+  .result{border:1px solid #bbf7d0;background:#f0fdf4;border-radius:13px;padding:15px}
+  .result h3{margin:0 0 6px;font-size:14px;color:#065f46}
+  .result .kv{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 12px}
+  .kv span{font-size:11.5px;background:#fff;border:1px solid #d1fae5;border-radius:8px;padding:4px 9px;color:#065f46}
+  .tabs{display:flex;gap:6px;margin-bottom:10px}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:600;
+    color:var(--ink-2);cursor:pointer;font-family:inherit}
+  .tab.on{background:var(--brand-soft);border-color:#bfdbfe;color:var(--brand)}
+  .pdfbox{width:100%;height:430px;border:1px solid var(--line);border-radius:11px;background:#eef2f7;
+    overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:10px}
+  .pdfbox img{max-width:100%;box-shadow:0 2px 10px rgba(15,23,42,.15);border-radius:4px;background:#fff}
+  .pdfbox .ph{color:var(--ink-3);font-size:12.5px;align-self:center}
+  .pager{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--ink-2)}
+  .pager .btn{width:auto}
+  .tabs-body{position:relative}
+  .hidden{display:none!important}
+
+  /* 批量清单 */
+  .batch-list{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .batch-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
+    background:#f8fafc;font-size:12.5px;color:var(--ink-2);border-bottom:1px solid var(--line)}
+  .batch-head .btn{width:auto}
+  .batch-items{max-height:190px;overflow:auto}
+  .batch-item{display:flex;align-items:center;gap:9px;padding:9px 12px;font-size:12.5px;color:var(--ink-2);
+    border-bottom:1px solid #f1f5f9}
+  .batch-item:last-child{border-bottom:0}
+  .batch-item .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .batch-item .sz{color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .batch-item .x{cursor:pointer;color:var(--ink-3);padding:0 4px}
+  .batch-item .x:hover{color:var(--err)}
+  .batch-item .st{font-size:11.5px;padding:2px 7px;border-radius:999px;background:#f1f5f9;color:var(--ink-2);flex:none}
+  .batch-item .st.run{background:var(--brand-soft);color:var(--brand)}
+  .batch-item .st.ok{background:#ecfdf5;color:#047857}
+  .batch-item .st.err{background:#fef2f2;color:#b91c1c}
+  .batch-item .st.q{background:#fff7ed;color:#c2410c}
+  .batch-bar{height:4px;background:#eef2f7;border-radius:999px;overflow:hidden;width:64px;flex:none}
+  .batch-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .3s}
+
+  /* 术语表 */
+  .gloss-picker{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:#fbfcfe;max-height:150px;overflow:auto}
+  .gloss-empty{font-size:12.5px;color:var(--ink-3)}
+  .gloss-row{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2)}
+  .gloss-row input{width:15px;height:15px;accent-color:var(--brand);flex:none}
+  .gloss-row .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .gloss-row .cnt{font-size:11.5px;color:var(--ink-3);background:#f1f5f9;padding:2px 7px;border-radius:999px}
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:80;display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal-box{background:#fff;border-radius:16px;width:100%;max-width:720px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px -20px rgba(15,23,42,.5)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .modal-head h3{margin:0;font-size:15px}
+  .modal-body{padding:16px 18px;overflow:auto}
+  .gloss-import{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfe;margin-bottom:14px}
+  .gi-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+  .gi-row:first-child{margin-top:0}
+  .gi-row input[type=text]{flex:1}
+  .gi-row .btn{width:auto;flex:none}
+  #glossPaste{width:100%;min-height:96px;margin-top:8px;border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;font-family:Consolas,Monaco,monospace;font-size:12.5px;resize:vertical;background:#fff}
+  #glossPaste:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  .gloss-sets{display:flex;flex-direction:column;gap:8px}
+  .gloss-card{border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .gloss-card .top{display:flex;align-items:center;gap:10px}
+  .gloss-card .top b{font-size:13.5px}
+  .gloss-card .top .meta{font-size:11.5px;color:var(--ink-3)}
+  .gloss-card .ops{margin-left:auto;display:flex;gap:6px}
+  .gloss-card .ops .btn{padding:5px 9px;font-size:11.5px}
+  .gloss-card .preview{margin-top:8px;font-size:12px;color:var(--ink-2);line-height:1.7;max-height:76px;overflow:auto;
+    background:#f8fafc;border-radius:8px;padding:8px 10px;font-family:Consolas,Monaco,monospace}
+
+  .history{margin-top:18px}
+  table.hist{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.hist th{text-align:left;color:var(--ink-3);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);font-size:11.5px}
+  table.hist td{padding:10px;border-bottom:1px solid #f1f5f9;color:var(--ink-2)}
+  table.hist tr:last-child td{border-bottom:0}
+  .dot-status{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+  .s-done{background:var(--ok)} .s-error{background:var(--err)} .s-running{background:var(--brand)} .s-cancelled{background:var(--ink-3)}
+
+  .toast{position:fixed;right:20px;bottom:20px;z-index:60;display:flex;flex-direction:column;gap:9px}
+  .toast div{background:#0f172a;color:#fff;padding:11px 15px;border-radius:11px;font-size:13px;box-shadow:var(--shadow);max-width:380px;animation:slide .25s}
+  .toast div.err{background:#b91c1c}
+  .toast div.ok{background:#047857}
+  @keyframes slide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .foot{max-width:1180px;margin:0 auto;padding:0 20px 40px;color:var(--ink-3);font-size:11.5px;line-height:1.8}
+  .foot a{color:var(--ink-2);text-decoration:underline}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="logo">译</div>
+    <div class="brand">PDF 中英对照翻译<small>DeepSeek 翻译 · BabelDOC 保留排版</small></div>
+    <div class="top-right">
+      <span id="enginePill" class="pill">引擎自检中…</span>
+      <span id="assetPill" class="pill gray hidden"></span>
+      <button class="btn btn-ghost btn-sm" id="refreshAll" title="重新加载状态、历史任务与术语表">↻ 刷新</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>上传英文 PDF，得到一份 <span>左右对照</span> 的中文版</h1>
+  <p>原文与译文同页并排、公式图表版式保留。<strong>PDF、PPT、Word 都能直接翻译</strong>——PPT/Word 会先自动转成 PDF。翻译由 DeepSeek 完成，版面重建由 BabelDOC 完成。</p>
+  <div class="feats">
+    <span class="feat">✓ 保留公式 / 表格 / 图表 / 目录</span>
+    <span class="feat">✓ 逐段 AI 翻译，非整页贴图</span>
+    <span class="feat">✓ 支持页码范围与并发控制</span>
+    <span class="feat">✓ 本地运行，文档不出本机</span>
+  </div>
+</section>
+
+<!-- 资源未就绪时的下载入口 -->
+<section class="card hidden" id="assetBanner" style="max-width:1180px;margin:18px auto 0;border-color:#fed7aa;background:#fffbeb">
+  <div class="card-b" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="flex:1;min-width:260px">
+      <b style="font-size:14px;color:#9a3412">版面模型与字体资源尚未就绪</b>
+      <div style="font-size:12.5px;color:#b45309;margin-top:5px;line-height:1.7" id="assetMsg">
+        翻译需要约 340MB 的版面分析模型与多语言字体（首次下载，缓存在 ~/.cache/babeldoc）。
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" id="dlAssets" style="width:auto;min-width:170px">下载模型资源</button>
+  </div>
+</section>
+
+<main>
+  <!-- 左：上传与设置 -->
+  <section class="card">
+    <div class="card-h"><h2>1 · 选择文件与设置</h2><span class="sub" id="maxHint"></span></div>
+    <div class="card-b">
+      <div class="drop" id="drop">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L8 8m4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>
+        <b>点击选择文件，或拖拽到这里</b>
+        <p><strong>PDF / PPT / Word 直接丢进来就行</strong>（PPT、Word 会自动转成 PDF）· 可多选批量 ·
+          单文件最大 <span id="maxMb">100</span>MB · 单批最多 <span id="maxBatch">20</span> 个</p>
+      </div>
+      <input type="file" id="file" accept=".pdf,.ppt,.pptx,.pps,.ppsx,.pot,.potx,.pptm,.doc,.docx,.docm,.rtf" class="hidden" multiple />
+
+      <div class="file-chosen" id="chosen">
+        <div class="fi">PDF</div>
+        <div class="meta"><b id="chosenName"></b><span id="chosenSize"></span></div>
+        <button class="btn btn-ghost btn-sm" id="clearFile">移除</button>
+      </div>
+
+      <!-- 批量待翻译清单 -->
+      <div class="batch-list hidden" id="batchList">
+        <div class="batch-head">
+          <span>待翻译 <b id="batchCount">0</b> 个文件</span>
+          <button class="btn btn-ghost btn-sm" id="batchClear">清空</button>
+        </div>
+        <div class="batch-items" id="batchItems"></div>
+      </div>
+
+      <div class="field">
+        <label>DeepSeek API Key <span style="font-weight:400;color:var(--ink-3)">（仅在本机内存中使用，不落盘）</span></label>
+        <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" />
+        <div class="hint" id="keyHint">到 platform.deepseek.com 创建 Key。Key 只随本次请求发往本机服务，再由服务进程直连 api.deepseek.com。</div>
+      </div>
+
+      <div class="field">
+        <label>翻译模型</label>
+        <div class="row">
+          <select id="model">
+            <option value="deepseek-chat">deepseek-chat（推荐 · 快且便宜）</option>
+            <option value="deepseek-reasoner">deepseek-reasoner（更强推理 · 更贵更慢）</option>
+          </select>
+          <select id="langOut">
+            <option value="zh-CN" selected>简体中文</option>
+            <option value="zh-TW">繁體中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+          </select>
+        </div>
+        <div class="hint">源语言固定为英语（en）；目标语言默认简体中文。</div>
+      </div>
+
+      <div class="field">
+        <label>术语表 <span style="font-weight:400;color:var(--ink-3)">（勾选后强制使用你的译名）</span>
+          <button class="btn btn-ghost btn-sm" id="glossManage" style="float:right;margin-top:-3px">管理术语表</button>
+        </label>
+        <div class="gloss-picker" id="glossPicker">
+          <div class="gloss-empty" id="glossEmpty">还没有术语表 —— 点右上「管理术语表」导入或新建</div>
+        </div>
+        <div class="hint">勾选术语表后会自动关闭上游的「自动术语提取」：实测两者同时开启时，上游自己提取的术语会压过你的译名，导致术语表看起来没生效。</div>
+      </div>
+
+      <div class="field">
+        <label>对照方式</label>
+        <div class="seg" id="modeSeg">
+          <button data-mode="side" class="on">同页左右并排</button>
+          <button data-mode="alt">整页交替</button>
+        </div>
+        <div class="hint" id="modeHint">同页左右并排：一页里左边原文、右边译文，最适合逐句精读。</div>
+      </div>
+
+      <details class="adv">
+        <summary>高级选项</summary>
+        <div class="row" style="margin-top:12px">
+          <div>
+            <label style="font-size:12px">页码范围</label>
+            <input type="text" id="pages" placeholder="留空=全部，如 1-5,8" />
+          </div>
+          <div>
+            <label style="font-size:12px">并发请求数 (QPS)</label>
+            <input type="number" id="qps" value="4" min="1" max="16" />
+          </div>
+        </div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="skipScan" checked /> 跳过扫描件检测（纯电子版更快）</label>
+          <label class="check"><input type="checkbox" id="splitLines" checked /> 短行独立成段（题干与 a)b)c) 选项、列表分行不合并）</label>
+          <label class="check"><input type="checkbox" id="tables" /> 翻译表格文字（实验性）</label>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div>
+            <label style="font-size:12px">短行切分强度</label>
+            <input type="number" id="splitFactor" value="0.8" min="0.1" max="1" step="0.1" />
+            <div class="hint">行宽小于「行宽中位数 × 该值」就另起一段。默认 0.8；发现该分行没分行可调到 0.9，发现切得太碎就降到 0.6。</div>
+          </div>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="start" disabled>开始翻译</button>
+        <button class="btn btn-ghost" id="cancel" disabled>取消当前任务</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右：进度与结果 -->
+  <section class="card">
+    <div class="card-h"><h2>2 · 进度与结果</h2><span class="sub" id="jobHint">尚未开始</span></div>
+    <div class="card-b">
+      <div id="idle" class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
+        <div>上传 PDF 后，这里会显示解析、翻译、重排版的实时进度，<br/>完成后可直接预览与下载双语对照文件。</div>
+      </div>
+
+      <div id="running" class="hidden">
+        <div class="progress-wrap">
+          <div class="pbar"><i id="pfill"></i></div>
+          <div class="pmeta"><span id="stageName">准备中…</span><b id="pct">0%</b></div>
+          <div class="pmeta"><span id="stageDetail"></span><span id="elapsed"></span></div>
+        </div>
+        <div class="stages" id="stages"></div>
+        <div class="logbox" id="logbox"></div>
+      </div>
+
+      <!-- 批量进度面板 -->
+      <div id="batchPanel" class="hidden">
+        <div class="progress-wrap">
+          <div class="pbar"><i id="bFill"></i></div>
+          <div class="pmeta"><span id="bSummary">批量任务准备中…</span><b id="bPct">0%</b></div>
+        </div>
+        <div class="batch-items" id="batchRows" style="margin-top:12px;border:1px solid var(--line);border-radius:11px"></div>
+        <div class="actions" style="margin-top:12px">
+          <button class="btn btn-ghost btn-sm" id="bDownloadAll" style="flex:1">下载已完成的文件</button>
+          <button class="btn btn-ghost btn-sm" id="bCancelAll" style="flex:1">取消未开始的任务</button>
+        </div>
+        <div class="hint" style="margin-top:8px">提示：窗口模式下每个文件都会弹一次「另存为」对话框，请逐个确认。</div>
+      </div>
+
+      <div id="done" class="hidden">
+        <div class="result">
+          <h3>✅ 翻译完成</h3>
+          <div class="kv" id="resultKv"></div>
+          <div class="actions" style="margin-top:0">
+            <button class="btn btn-primary btn-sm" id="dlDual" style="flex:1">下载中英对照 PDF</button>
+            <button class="btn btn-ghost btn-sm" id="dlMono" style="flex:1">仅译文 PDF</button>
+          </div>
+          <div class="hint" id="saveHint" style="margin-top:8px"></div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="tabs">
+            <button class="tab on" data-view="dual">对照版预览</button>
+            <button class="tab" data-view="source">原文件预览</button>
+            <button class="tab" data-view="mono">仅译文预览</button>
+          </div>
+          <div class="tabs-body">
+            <div class="pdfbox" id="viewDual"></div>
+            <div class="pdfbox hidden" id="viewSource"></div>
+            <div class="pdfbox hidden" id="viewMono"></div>
+          </div>
+          <div class="pager">
+            <button class="btn btn-ghost btn-sm" id="prevPage">上一页</button>
+            <span id="pageInfo">—</span>
+            <button class="btn btn-ghost btn-sm" id="nextPage">下一页</button>
+            <span class="hint" style="margin-left:auto">页面为后端渲染的图片预览</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="failed" class="hidden">
+        <div class="result" style="border-color:#fecaca;background:#fef2f2">
+          <h3 style="color:#991b1b">⚠️ 任务未完成</h3>
+          <div id="errMsg" style="font-size:13px;color:#7f1d1d;line-height:1.7;word-break:break-word"></div>
+        </div>
+        <div class="logbox" id="errLog" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 历史 -->
+  <section class="card history" style="grid-column:1/-1">
+    <div class="card-h"><h2>历史任务</h2><span class="sub">仅保留最近 20 条，文件在 jobs/ 目录下</span></div>
+    <div class="card-b" style="padding:6px 8px 10px">
+      <table class="hist">
+        <thead><tr><th>文件</th><th>状态</th><th>耗时</th><th>创建时间</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody id="histBody"><tr><td colspan="5" style="text-align:center;color:var(--ink-3);padding:18px">暂无记录</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="foot">
+  <b>许可与来源</b>：本程序以 <span id="licName">AGPL-3.0</span> 发布，为自由软件、不提供任何担保；
+  完整源码：<a id="srcLink" href="#" target="_blank" rel="noopener">GitHub 仓库</a>（AGPL-3.0 第 13 条要求向使用者提供对应源码）。<br/>
+  核心上游：<a href="https://github.com/funstory-ai/BabelDOC" target="_blank" rel="noopener">BabelDOC</a> 与
+  <a href="https://github.com/PDFMathTranslate-next/PDFMathTranslate-next" target="_blank" rel="noopener">PDFMathTranslate-next</a>（均为 AGPL-3.0，
+  Copyright (C) funstory.ai limited 等）；字体与版面模型来源见随附 <code>THIRD-PARTY-NOTICES.md</code>。<br/>
+  本页面为本地自用工具：文档与 API Key 只在本机流转，不经过第三方服务器（除 DeepSeek 翻译请求外）。
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 术语表管理弹窗 -->
+<div class="modal hidden" id="glossModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>管理术语表</h3>
+      <button class="btn btn-ghost btn-sm" id="glossClose">关闭</button>
+    </div>
+    <div class="modal-body">
+      <div class="gloss-import">
+        <div class="gi-row">
+          <input type="text" id="glossName" placeholder="术语集名称（可留空，用文件名）" />
+          <button class="btn btn-primary btn-sm" id="glossUploadBtn">选择文件导入</button>
+          <input type="file" id="glossFile" accept=".csv,.tsv,.txt" class="hidden" />
+        </div>
+        <textarea id="glossPaste" placeholder="也可以直接粘贴，每行一条，支持这些写法：
+source,target          （标准 CSV，推荐）
+transformer,变换器
+attention	注意力      （制表符分隔）
+encoder => 编码器       （箭头分隔）"></textarea>
+        <div class="gi-row">
+          <button class="btn btn-ghost btn-sm" id="glossPasteBtn">粘贴导入</button>
+          <span class="hint" style="margin:0">自动识别编码（UTF-8/GBK）、分隔符与表头</span>
+        </div>
+      </div>
+      <div class="gloss-sets" id="glossSets"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { files: [], file: null, jobId: null, filename: '', mode: 'side', es: null, stages: new Map(),
+                page: 1, pages: {}, batch: null, batchTotal: 0, batchTimer: null, maxBatch: 20,
+                glossaries: [], selectedGlossaries: new Set(), activeJobIds: new Set() };
+
+/* ---------------- 工具 ---------------- */
+function toast(msg, kind='') {
+  const el = document.createElement('div');
+  el.className = kind; el.textContent = msg;
+  $('toast').appendChild(el);
+  setTimeout(() => el.remove(), kind === 'err' ? 8000 : 4200);
+}
+function fmtSize(bytes) {
+  if (!bytes && bytes !== 0) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' KB';
+  return (bytes/1024/1024).toFixed(2) + ' MB';
+}
+function fmtTime(ts) { return new Date(ts*1000).toLocaleString('zh-CN', {hour12:false}); }
+
+/* ---------------- 健康检查 + 资源准备 ---------------- */
+let assetPolling = null;
+async function checkHealth() {
+  try {
+    const r = await fetch('/api/health');
+    const h = await r.json();
+    $('maxMb').textContent = h.max_upload_mb;
+    $('maxHint').textContent = '单文件 ≤ ' + h.max_upload_mb + 'MB';
+    if (h.max_batch_files) { $('maxBatch').textContent = h.max_batch_files; state.maxBatch = h.max_batch_files; }
+    if (h.license) $('licName').textContent = h.license;
+    if (h.source_url) { $('srcLink').href = h.source_url; $('srcLink').textContent = h.source_url.replace(/^https?:\/\//, ''); }
+    const pill = $('enginePill');
+    if (!h.venv_ok && !h.assets_ready) {
+      pill.className = 'pill warn'; pill.textContent = '引擎未就绪';
+    } else {
+      pill.className = 'pill ok'; pill.textContent = '引擎就绪 · BabelDOC + DeepSeek';
+    }
+    const ap = $('assetPill');
+    ap.classList.remove('hidden');
+    if (h.assets_ready) { ap.className = 'pill gray'; ap.textContent = '版面模型已缓存 ' + h.assets_mb + 'MB'; }
+    else { ap.className = 'pill warn'; ap.textContent = '模型资源缺失 ' + h.assets_mb + 'MB'; }
+
+    $('assetBanner').classList.toggle('hidden', !!h.assets_ready);
+    const st = h.assets_state || {};
+    if (st.running) {
+      $('dlAssets').disabled = true; $('dlAssets').textContent = '下载中…';
+      $('assetMsg').textContent = (st.message || '正在下载…') + ' 当前 ' + h.assets_mb + 'MB';
+      startAssetPolling();
+    } else if (!h.assets_ready) {
+      $('dlAssets').disabled = false; $('dlAssets').textContent = '下载模型资源';
+      if (st.message) $('assetMsg').textContent = st.message + '（当前 ' + h.assets_mb + 'MB）';
+    }
+    if (h.server_has_key) $('keyHint').textContent = '服务端已配置 DEEPSEEK_API_KEY，此处可留空直接使用。';
+  } catch (e) {
+    $('enginePill').className = 'pill warn';
+    $('enginePill').textContent = '服务未响应';
+  }
+}
+
+function startAssetPolling() {
+  if (assetPolling) return;
+  assetPolling = setInterval(async () => {
+    try {
+      const s = await (await fetch('/api/assets/state')).json();
+      $('assetMsg').textContent = '正在恢复/下载模型与字体（约 340MB）… 当前 ' + (s.assets_mb || 0) + 'MB';
+      if (!s.running) {
+        clearInterval(assetPolling); assetPolling = null;
+        $('dlAssets').disabled = false; $('dlAssets').textContent = '下载模型资源';
+        toast(s.done ? '模型资源已就绪' : (s.message || '下载未完成'), s.done ? 'ok' : 'err');
+        checkHealth();
+      }
+    } catch {}
+  }, 2500);
+}
+
+$('dlAssets').addEventListener('click', async () => {
+  $('dlAssets').disabled = true; $('dlAssets').textContent = '下载中…';
+  try {
+    const r = await (await fetch('/api/assets/download', { method: 'POST' })).json();
+    toast(r.message || '已开始下载');
+    startAssetPolling();
+  } catch (e) {
+    toast('启动下载失败：' + e.message, 'err');
+    $('dlAssets').disabled = false; $('dlAssets').textContent = '下载模型资源';
+  }
+});
+
+/* ---------------- 文件选择（支持多选） ---------------- */
+const drop = $('drop');
+drop.addEventListener('click', () => $('file').click());
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { addFiles(e.dataTransfer.files); });
+$('file').addEventListener('change', e => { addFiles(e.target.files); $('file').value = ''; });
+$('clearFile').addEventListener('click', () => clearFiles());
+$('batchClear').addEventListener('click', () => clearFiles());
+
+const OFFICE_EXTS = ['ppt','pptx','pps','ppsx','pot','potx','pptm','doc','docx','docm','rtf'];
+const ACCEPT_EXTS = ['pdf', ...OFFICE_EXTS];
+
+function fileExt(name) {
+  const i = String(name).lastIndexOf('.');
+  return i < 0 ? '' : String(name).slice(i + 1).toLowerCase();
+}
+function isOfficeName(name) { return OFFICE_EXTS.includes(fileExt(name)); }
+
+function addFiles(list) {
+  const incoming = [...(list || [])];
+  if (!incoming.length) return;
+  const maxBatch = state.maxBatch || 20;
+  let rejected = 0;
+  for (const f of incoming) {
+    if (!ACCEPT_EXTS.includes(fileExt(f.name))) { rejected++; continue; }
+    if (state.files.some(x => x.name === f.name && x.size === f.size)) continue;
+    state.files.push(f);
+  }
+  if (state.files.length > maxBatch) {
+    toast(`单批最多 ${maxBatch} 个，已截取前 ${maxBatch} 个`, 'err');
+    state.files = state.files.slice(0, maxBatch);
+  }
+  if (rejected) toast(`已忽略 ${rejected} 个不支持的文件（仅 PDF / PPT / Word）`, 'err');
+  renderFiles();
+}
+
+function removeFile(idx) {
+  state.files.splice(idx, 1);
+  renderFiles();
+}
+
+function clearFiles() {
+  state.files = [];
+  state.file = null;
+  renderFiles();
+}
+
+function renderFiles() {
+  const n = state.files.length;
+  state.file = n ? state.files[0] : null;
+  $('start').disabled = n === 0;
+  $('start').textContent = n > 1 ? `开始批量翻译（${n} 个）` : '开始翻译';
+  $('batchList').classList.toggle('hidden', n < 1);
+  $('batchCount').textContent = n;
+  $('batchItems').innerHTML = state.files.map((f, i) => `
+    <div class="batch-item">
+      <span class="nm" title="${f.name}">${f.name}${isOfficeName(f.name) ? ' <span style="color:var(--ink-3)">· 将先转 PDF</span>' : ''}</span>
+      <span class="sz">${fmtSize(f.size)}</span>
+      <span class="x" data-remove="${i}" title="移除">✕</span>
+    </div>`).join('');
+  $('batchItems').querySelectorAll('[data-remove]').forEach(el => {
+    el.addEventListener('click', () => removeFile(Number(el.dataset.remove)));
+  });
+  // 单个文件时沿用原来的"已选择"卡片
+  if (n === 1) {
+    $('chosenName').textContent = state.files[0].name;
+    $('chosenSize').textContent = fmtSize(state.files[0].size) + ' · 就绪';
+    $('chosen').classList.add('show');
+    drop.classList.add('hidden');
+  } else if (n > 1) {
+    $('chosen').classList.remove('show');
+    drop.classList.remove('hidden');
+  } else {
+    $('chosen').classList.remove('show');
+    drop.classList.remove('hidden');
+  }
+}
+
+/* ---------------- 模式切换 ---------------- */
+$('modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  [...$('modeSeg').children].forEach(x => x.classList.toggle('on', x === b));
+  state.mode = b.dataset.mode;
+  $('modeHint').textContent = state.mode === 'side'
+    ? '同页左右并排：一页里左边原文、右边译文，最适合逐句精读。'
+    : '整页交替：原文页、译文页交替排列，单页版面更大，适合通读译文。';
+});
+
+/* ---------------- 开始翻译（单个 / 批量同一入口） ---------------- */
+$('start').addEventListener('click', async () => {
+  if (!state.files.length) { toast('请先选择 PDF 文件', 'err'); return; }
+  const key = $('apiKey').value.trim();
+  const batch = state.files.length > 1;
+  const fd = new FormData();
+  if (batch) {
+    state.files.forEach(f => fd.append('files', f));
+  } else {
+    fd.append('file', state.files[0]);
+  }
+  fd.append('api_key', key);
+  fd.append('model', $('model').value);
+  fd.append('lang_out', $('langOut').value);
+  fd.append('pages', $('pages').value.trim());
+  fd.append('qps', $('qps').value || '4');
+  fd.append('alternating', state.mode === 'alt' ? 'true' : 'false');
+  fd.append('skip_scanned_detection', $('skipScan').checked ? 'true' : 'false');
+  fd.append('translate_tables', $('tables').checked ? 'true' : 'false');
+  fd.append('split_short_lines', $('splitLines').checked ? 'true' : 'false');
+  fd.append('short_line_split_factor', $('splitFactor').value || '0.8');
+  if (state.selectedGlossaries.size) {
+    fd.append('glossary_ids', [...state.selectedGlossaries].join(','));
+  }
+
+  const url = batch ? '/api/translate/batch' : '/api/translate';
+  $('start').disabled = true;
+  $('start').textContent = batch ? '上传中…' : '上传中…';
+  try {
+    const r = await fetch(url, { method: 'POST', body: fd });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'HTTP ' + r.status }));
+      throw new Error(err.detail || '上传失败');
+    }
+    const data = await r.json();
+    if (key) localStorage.setItem('deepseek_key', key);
+
+    if (batch) {
+      const jobs = data.jobs || [];
+      if (data.failed && data.failed.length) {
+        toast(`${data.failed.length} 个文件被拒绝：${data.failed[0].reason}`, 'err');
+      }
+      if (!jobs.length) throw new Error('没有任务被创建');
+      state.batch = jobs;
+      state.batchTotal = jobs.length;
+      startBatchPolling();
+      toast(`已加入队列 ${jobs.length} 个文件（并发上限 ${data.max_concurrent}）`, 'ok');
+      clearFiles();
+      showBatchPanel();
+    } else {
+      state.jobId = data.job_id;
+      state.filename = data.filename;
+      showRunning(data.filename);
+      subscribe(data.job_id);
+      clearFiles();
+    }
+    loadHistory();
+  } catch (e) {
+    toast(e.message, 'err');
+    $('start').disabled = false;
+    $('start').textContent = batch ? `开始批量翻译（${state.files.length} 个）` : '开始翻译';
+  }
+});
+
+$('cancel').addEventListener('click', async () => {
+  if (!state.jobId) return;
+  await fetch(`/api/jobs/${state.jobId}/cancel`, { method: 'POST' });
+  toast('已请求取消任务');
+});
+
+/* ---------------- 进度面板 ---------------- */
+function showRunning(name) {
+  $('idle').classList.add('hidden');
+  $('done').classList.add('hidden');
+  $('failed').classList.add('hidden');
+  $('batchPanel').classList.add('hidden');
+  $('running').classList.remove('hidden');
+  $('cancel').disabled = false;
+  state.stages.clear();
+  $('stages').innerHTML = '';
+  $('logbox').textContent = '';
+  $('pfill').style.width = '0%';
+  $('pct').textContent = '0%';
+  $('stageName').textContent = '准备中…';
+  $('stageDetail').textContent = '';
+  $('elapsed').textContent = '';
+  $('jobHint').textContent = name;
+  $('start').textContent = '翻译中…';
+}
+
+function upsertStage(label, pct, elapsed) {
+  if (!label) return;
+  let row = state.stages.get(label);
+  if (!row) {
+    row = document.createElement('div');
+    row.className = 'stage run';
+    row.innerHTML = '<span class="dot"></span><span class="n"></span><span class="t"></span>';
+    row.querySelector('.n').textContent = label;
+    $('stages').appendChild(row);
+    state.stages.set(label, row);
+    [...$('stages').querySelectorAll('.stage')].forEach(x => { if (x !== row && x.classList.contains('run')) { x.classList.remove('run'); x.classList.add('done'); } });
+  }
+  row.querySelector('.t').textContent = elapsed != null ? elapsed + 's' : '';
+}
+
+function subscribe(jobId) {
+  if (state.es) state.es.close();
+  state.activeJobIds.add(jobId);
+  const es = new EventSource(`/api/jobs/${jobId}/events`);
+  state.es = es;
+  es.onmessage = (ev) => {
+    let payload;
+    try { payload = JSON.parse(ev.data); } catch { return; }
+    const { job, event } = payload;
+    if (!job) return;
+    $('pfill').style.width = Math.max(0, Math.min(100, job.progress)) + '%';
+    $('pct').textContent = Math.round(job.progress) + '%';
+    if (job.stage) $('stageName').textContent = job.stage;
+    if (job.elapsed) $('elapsed').textContent = '已用 ' + job.elapsed + 's';
+
+    if (event.type === 'progress' || event.type === 'stage_done') {
+      upsertStage(event.stage_label || event.stage, job.progress, event.elapsed);
+      if (event.stage_total) $('stageDetail').textContent = `${event.stage_current || 0} / ${event.stage_total}`;
+    } else if (event.type === 'log') {
+      const box = $('logbox');
+      box.textContent += event.message + '\n';
+      box.scrollTop = box.scrollHeight;
+    } else if (event.type === 'error') {
+      showFailed(event.message);
+    } else if (event.type === 'finish') {
+      /* 结果在下一条 done 里统一展示 */
+    } else if (event.type === 'done') {
+      showDone(job);
+    } else if (event.type === 'closed') {
+      if (job.status === 'done') showDone(job);
+      else if (job.status === 'error') showFailed(job.error || '未知错误', job);
+      else if (job.status === 'cancelled') { showFailed('任务已取消', job, true); }
+      es.close(); state.es = null; loadHistory();
+    }
+  };
+  es.onerror = () => { /* 浏览器会自动重连 */ };
+}
+
+function showDone(job) {
+  if (state.es) { state.es.close(); state.es = null; }
+  $('running').classList.add('hidden');
+  $('failed').classList.add('hidden');
+  $('batchPanel').classList.add('hidden');
+  $('done').classList.remove('hidden');
+  $('cancel').disabled = true;
+  $('start').disabled = false; $('start').textContent = '开始翻译';
+  state.jobId = job.id;
+  state.filename = job.filename || state.filename;
+  const r = job.result || {};
+  const kv = [];
+  if (r.elapsed) kv.push('耗时 ' + r.elapsed + 's');
+  if (r.char_count) kv.push('翻译字符 ' + Number(r.char_count).toLocaleString());
+  if (r.token_count) kv.push('Token 约 ' + Number(r.token_count).toLocaleString());
+  if (r.peak_memory_mb) kv.push('峰值内存 ' + r.peak_memory_mb + 'MB');
+  $('resultKv').innerHTML = kv.map(x => `<span>${x}</span>`).join('') || '<span>已生成</span>';
+  $('saveHint').textContent = hasMono(job)
+    ? '点上方按钮保存文件；窗口模式下会弹出系统「另存为」对话框。'
+    : '本次未产出仅译文版（可重新翻译时保留默认设置）。';
+  $('dlMono').disabled = !hasMono(job);
+  loadViews(job.id);
+  toast('翻译完成，可预览或下载', 'ok');
+}
+
+function hasMono(job) {
+  const r = job.result || {};
+  return !!(r.mono_pdf || (job.files && job.files.mono));
+}
+
+/* ---------------- 预览：后端渲染成图片，翻页查看 ---------------- */
+function loadViews(jobId) {
+  state.page = 1;
+  state.pages = state.pages || {};
+  refreshPageInfo();
+  showPage('dual');
+}
+
+async function fetchPageCount(jobId, kind) {
+  try {
+    const r = await fetch(`/api/jobs/${jobId}/pages/${kind}`);
+    if (!r.ok) return 0;
+    const d = await r.json();
+    state.pages[kind] = d.pages;
+    return d.pages;
+  } catch { return 0; }
+}
+
+function currentKind() {
+  const on = document.querySelector('.tab.on');
+  return on ? on.dataset.view : 'dual';
+}
+
+async function showPage(kind) {
+  const jobId = state.jobId;
+  if (!jobId) return;
+  const box = $('view' + kind.charAt(0).toUpperCase() + kind.slice(1));
+  if (!box) return;
+  box.innerHTML = '<div class="ph">正在渲染第 ' + state.page + ' 页…</div>';
+  const total = state.pages[kind] || (await fetchPageCount(jobId, kind));
+  if (!total) {
+    box.innerHTML = '<div class="ph">该文件不存在或尚未生成</div>';
+    $('pageInfo').textContent = '—';
+    return;
+  }
+  if (state.page > total) state.page = total;
+  if (state.page < 1) state.page = 1;
+  const img = new Image();
+  img.alt = `第 ${state.page} 页`;
+  img.onload = () => { box.innerHTML = ''; box.appendChild(img); };
+  img.onerror = () => { box.innerHTML = '<div class="ph">第 ' + state.page + ' 页渲染失败</div>'; };
+  img.src = `/api/jobs/${jobId}/page/${kind}/${state.page}?dpi=110`;
+  $('pageInfo').textContent = `第 ${state.page} / ${total} 页`;
+  state.pages[kind] = total;
+}
+
+function refreshPageInfo() {
+  const kind = currentKind();
+  const total = state.pages[kind];
+  $('pageInfo').textContent = total ? `第 ${state.page} / ${total} 页` : '—';
+}
+
+$('prevPage').addEventListener('click', () => { state.page = Math.max(1, (state.page || 1) - 1); showPage(currentKind()); });
+$('nextPage').addEventListener('click', () => { state.page = (state.page || 1) + 1; showPage(currentKind()); });
+
+function showFailed(msg, job, cancelled=false) {
+  if (state.es) { state.es.close(); state.es = null; }
+  $('running').classList.add('hidden');
+  $('done').classList.add('hidden');
+  $('failed').classList.remove('hidden');
+  $('cancel').disabled = true;
+  $('start').disabled = false; $('start').textContent = '开始翻译';
+  $('errMsg').textContent = msg || '未知错误';
+  if (job && job.events) {
+    $('errLog').textContent = job.events.filter(e => e.type === 'log').slice(-30).map(e => e.message).join('\n');
+  }
+  if (!cancelled) toast('任务失败：' + String(msg).slice(0, 80), 'err');
+  loadHistory();
+}
+
+/* ---------------- 术语表 ---------------- */
+async function loadGlossaries() {
+  try {
+    const r = await fetch('/api/glossaries');
+    const data = await r.json();
+    state.glossaries = data.sets || [];
+  } catch { state.glossaries = []; }
+  renderGlossPicker();
+  renderGlossSets();
+}
+
+function renderGlossPicker() {
+  const sets = state.glossaries || [];
+  const box = $('glossPicker');
+  if (!sets.length) {
+    box.innerHTML = '<div class="gloss-empty">还没有术语表 —— 点右上「管理术语表」导入或新建</div>';
+    return;
+  }
+  box.innerHTML = sets.map(s => `
+    <label class="gloss-row">
+      <input type="checkbox" data-gid="${s.id}" ${state.selectedGlossaries.has(s.id) ? 'checked' : ''} />
+      <span class="nm" title="${s.description || ''}">${s.name}</span>
+      <span class="cnt">${s.terms} 条</span>
+    </label>`).join('');
+  box.querySelectorAll('[data-gid]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) state.selectedGlossaries.add(cb.dataset.gid);
+      else state.selectedGlossaries.delete(cb.dataset.gid);
+    });
+  });
+}
+
+function renderGlossSets() {
+  const sets = state.glossaries || [];
+  $('glossSets').innerHTML = sets.length ? sets.map(s => `
+    <div class="gloss-card" data-set="${s.id}">
+      <div class="top">
+        <b>${s.name}</b>
+        <span class="meta">${s.terms} 条 · ${s.source === 'upload' ? '导入' : '手动'} ·
+          ${new Date((s.updated_at || s.created_at) * 1000).toLocaleDateString('zh-CN')}</span>
+        <span class="ops">
+          <button class="btn btn-ghost" data-act="view">查看</button>
+          <button class="btn btn-ghost" data-act="export">导出</button>
+          <button class="btn btn-ghost" data-act="del">删除</button>
+        </span>
+      </div>
+      <div class="preview hidden"></div>
+    </div>`).join('') : '<div class="gloss-empty">暂无术语集</div>';
+
+  $('glossSets').querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.closest('[data-set]').dataset.set;
+      const act = btn.dataset.act;
+      if (act === 'view') {
+        const box = btn.closest('.gloss-card').querySelector('.preview');
+        if (!box.classList.contains('hidden')) { box.classList.add('hidden'); return; }
+        const d = await (await fetch(`/api/glossaries/${id}`)).json();
+        box.textContent = (d.terms || []).slice(0, 60).map(t => `${t.source}  →  ${t.target}`).join('\n')
+          || '（空）';
+        box.classList.remove('hidden');
+      } else if (act === 'export') {
+        window.open(`/api/glossaries/${id}/export`, '_blank');
+      } else if (act === 'del') {
+        if (!confirm('确定删除这个术语集？')) return;
+        await fetch(`/api/glossaries/${id}`, { method: 'DELETE' });
+        state.selectedGlossaries.delete(id);
+        toast('已删除');
+        loadGlossaries();
+      }
+    });
+  });
+}
+
+$('glossManage').addEventListener('click', () => { $('glossModal').classList.remove('hidden'); loadGlossaries(); });
+$('glossClose').addEventListener('click', () => $('glossModal').classList.add('hidden'));
+$('glossModal').addEventListener('click', e => { if (e.target === $('glossModal')) $('glossModal').classList.add('hidden'); });
+
+$('glossUploadBtn').addEventListener('click', () => $('glossFile').click());
+$('glossFile').addEventListener('change', async e => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('name', $('glossName').value.trim());
+  const r = await fetch('/api/glossaries/import', { method: 'POST', body: fd });
+  const data = await r.json();
+  if (!r.ok) { toast('导入失败：' + (data.detail || r.status), 'err'); return; }
+  const w = (data.set.warnings || []).join('；');
+  toast(`已导入「${data.set.name}」，${data.set.terms} 条` + (w ? `（${w}）` : ''), 'ok');
+  $('glossName').value = ''; $('glossFile').value = '';
+  loadGlossaries();
+});
+
+$('glossPasteBtn').addEventListener('click', async () => {
+  const text = $('glossPaste').value;
+  if (!text.trim()) { toast('请先粘贴内容', 'err'); return; }
+  const fd = new FormData();
+  fd.append('text', text);
+  fd.append('name', $('glossName').value.trim());
+  const r = await fetch('/api/glossaries/import', { method: 'POST', body: fd });
+  const data = await r.json();
+  if (!r.ok) { toast('导入失败：' + (data.detail || r.status), 'err'); return; }
+  toast(`已导入「${data.set.name}」，${data.set.terms} 条`, 'ok');
+  $('glossPaste').value = ''; $('glossName').value = '';
+  loadGlossaries();
+});
+
+
+function showBatchPanel() {
+  $('idle').classList.add('hidden');
+  $('done').classList.add('hidden');
+  $('failed').classList.add('hidden');
+  $('running').classList.add('hidden');
+  $('batchPanel').classList.remove('hidden');
+  $('cancel').disabled = false;
+  $('jobHint').textContent = `批量 ${state.batchTotal} 个文件`;
+  renderBatchRows({});
+}
+
+function renderBatchRows(details) {
+  const rows = (state.batch || []).map(j => {
+    const d = details[j.job_id] || {};
+    const status = d.status || 'queued';
+    const prog = d.progress || 0;
+    const cls = { done: 'ok', error: 'err', running: 'run', queued: 'q', cancelled: '' }[status] || '';
+    const label = { done: '完成', error: '失败', running: '翻译中', queued: d.queue_position ? `排队第${d.queue_position}位` : '排队', cancelled: '已取消' }[status] || status;
+    const stage = (d.stage || '').slice(0, 18);
+    return `<div class="batch-item" data-job="${j.job_id}">
+      <span class="nm" title="${j.filename}">${j.filename}</span>
+      <span class="st ${cls}">${label}</span>
+      <span class="batch-bar"><i style="width:${prog}%"></i></span>
+      <span class="sz" style="width:52px;text-align:right">${status === 'done' ? '✓' : Math.round(prog) + '%'}</span>
+      ${status === 'done' ? `<span class="x" data-dl="${j.job_id}" title="下载">⤓</span>` : ''}
+    </div>`;
+  }).join('');
+  $('batchRows').innerHTML = rows || '<div class="batch-item">无任务</div>';
+  $('batchRows').querySelectorAll('[data-dl]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.jobId = el.dataset.dl;
+      handleDownload('dual');
+    });
+  });
+
+  const list = Object.values(details);
+  const done = list.filter(d => d.status === 'done').length;
+  const failed = list.filter(d => d.status === 'error').length;
+  const overall = state.batchTotal ? Math.round((done + failed) / state.batchTotal * 100) : 0;
+  $('bFill').style.width = overall + '%';
+  $('bPct').textContent = overall + '%';
+  $('bSummary').textContent = `已完成 ${done} / ${state.batchTotal}` + (failed ? `，失败 ${failed}` : '');
+}
+
+function startBatchPolling() {
+  if (state.batchTimer) clearInterval(state.batchTimer);
+  state.batchTimer = setInterval(async () => {
+    if (!state.batch || !state.batch.length) return;
+    const details = {};
+    await Promise.all(state.batch.map(async j => {
+      try {
+        const r = await fetch(`/api/jobs/${j.job_id}`);
+        if (r.ok) details[j.job_id] = await r.json();
+      } catch {}
+    }));
+    renderBatchRows(details);
+    const list = Object.values(details);
+    const finished = list.length === state.batch.length &&
+      list.every(d => ['done', 'error', 'cancelled'].includes(d.status));
+    if (finished) {
+      clearInterval(state.batchTimer);
+      state.batchTimer = null;
+      const ok = list.filter(d => d.status === 'done').length;
+      const bad = list.filter(d => d.status === 'error').length;
+      toast(`批量完成：成功 ${ok} 个${bad ? `，失败 ${bad} 个` : ''}`, bad ? 'err' : 'ok');
+      $('cancel').disabled = true;
+      loadHistory();
+    }
+  }, 1500);
+}
+
+$('bDownloadAll').addEventListener('click', async () => {
+  const doneIds = $('batchRows').querySelectorAll('[data-dl]');
+  if (!doneIds.length) { toast('还没有完成的文件', 'err'); return; }
+  toast(`将依次保存 ${doneIds.length} 个文件`);
+  for (const el of doneIds) {
+    state.jobId = el.dataset.dl;
+    await handleDownload('dual');
+  }
+});
+
+$('bCancelAll').addEventListener('click', async () => {
+  const ids = (state.batch || []).map(j => j.job_id);
+  let n = 0;
+  for (const id of ids) {
+    try {
+      const d = await (await fetch(`/api/jobs/${id}`)).json();
+      if (['done', 'error', 'cancelled'].includes(d.status)) continue;
+      await fetch(`/api/jobs/${id}/cancel`, { method: 'POST' });
+      n++;
+    } catch {}
+  }
+  toast(n ? `已取消 ${n} 个任务` : '没有可取消的任务');
+  if (state.batchTimer) { clearInterval(state.batchTimer); state.batchTimer = null; }
+  startBatchPolling();
+});
+
+
+async function handleDownload(kind) {
+  if (!state.jobId) { toast('没有可下载的任务', 'err'); return; }
+  const filename = suggestedName(kind);
+
+  // 方案 A：原生「另存为」对话框（窗口模式）
+  const bridge = window.pywebview && window.pywebview.api;
+  if (bridge && bridge.save_file) {
+    toast('正在准备文件…');
+    try {
+      const resp = await fetch(`/api/jobs/${state.jobId}/file/${kind}`);
+      if (!resp.ok) throw new Error('服务返回 HTTP ' + resp.status);
+      const buf = new Uint8Array(await resp.arrayBuffer());
+      let bin = '';
+      const CHUNK = 0x8000;
+      for (let i = 0; i < buf.length; i += CHUNK) {
+        bin += String.fromCharCode.apply(null, buf.subarray(i, i + CHUNK));
+      }
+      const res = await bridge.save_file(filename, btoa(bin));
+      if (res && res.ok) {
+        toast('已保存：' + res.path, 'ok');
+        $('saveHint').textContent = '上次保存位置：' + res.path;
+        return;
+      }
+      if (res && res.cancelled) { toast('已取消保存'); return; }
+      toast('原生保存不可用（' + ((res && res.message) || '未知原因') + '），改用浏览器下载', 'err');
+    } catch (e) {
+      toast('准备文件失败：' + e.message + '，改用浏览器下载', 'err');
+    }
+  }
+
+  // 方案 B：强制下载链接 —— WebView2 自带下载管理，会存到默认「下载」文件夹
+  const url = `/api/jobs/${state.jobId}/save/${kind}`;
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    $('saveHint').textContent = '已交给浏览器/WebView2 下载（默认在「下载」文件夹）';
+  } catch (e) {
+    toast('改用直接打开方式，请在打开的窗口中另存', 'err');
+    window.open(url, '_blank');
+  }
+}
+
+function suggestedName(kind) {
+  const base = String(state.filename || 'document.pdf').replace(/\.pdf$/i, '');
+  if (kind === 'dual') return base + '-对照.pdf';
+  if (kind === 'mono') return base + '-译文.pdf';
+  if (kind === 'glossary') return base + '-术语表.csv';
+  return base + '.pdf';
+}
+
+$('dlDual').addEventListener('click', () => handleDownload('dual'));
+$('dlMono').addEventListener('click', () => handleDownload('mono'));
+
+/* ---------------- 历史 ---------------- */
+function hasArtifacts(j) {
+  const r = j.result || {};
+  return !!(r.dual_pdf || (j.files && j.files.dual));
+}
+
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/jobs?limit=20');
+    const data = await r.json();
+    const rows = data.jobs || [];
+    const body = $('histBody');
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ink-3);padding:18px">暂无记录</td></tr>'; return; }
+    body.innerHTML = rows.map(j => {
+      const cls = {done:'s-done', error:'s-error', running:'s-running', queued:'s-running', cancelled:'s-cancelled'}[j.status] || 's-cancelled';
+      const label = {done:'完成', error:'失败', running:'进行中', queued:'排队', cancelled:'已取消'}[j.status] || j.status;
+      let ops = '—';
+      if (hasArtifacts(j)) {
+        ops = `<a href="#" data-view-job="${j.id}">预览</a> · <a href="#" data-dl-job="${j.id}">下载</a>`;
+      } else if (j.status === 'running' || j.status === 'queued') {
+        ops = `<a href="#" data-open="${j.id}">查看进度</a>`;
+        // 进程被关掉后，历史任务会永远停在"运行中"——给个重跑入口
+        if (!state.activeJobIds.has(j.id)) {
+          ops += ` · <a href="#" data-retry="${j.id}" title="该任务没有在运行（可能程序被关闭过），点击重新翻译">重新翻译</a>`;
+        }
+      } else if (j.status === 'error' || j.status === 'cancelled') {
+        ops = `<a href="#" data-retry="${j.id}" title="用同一份文件重新翻译">重新翻译</a>`;
+      }
+      return `<tr><td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${j.filename}</td>
+        <td><span class="dot-status ${cls}"></span>${label}</td>
+        <td>${j.elapsed ? j.elapsed + 's' : '—'}</td>
+        <td>${fmtTime(j.created_at)}</td>
+        <td style="text-align:right">${ops}</td></tr>`;
+    }).join('');
+
+    body.querySelectorAll('[data-retry]').forEach(a => a.addEventListener('click', async e => {
+      e.preventDefault();
+      const id = a.dataset.retry;
+      const key = $('apiKey').value.trim();
+      if (!key) { toast('请先在左侧填写 DeepSeek API Key（Key 不落盘，重跑需要重新提供）', 'err'); $('apiKey').focus(); return; }
+      if (!confirm('用同一份文件重新翻译一遍？')) return;
+      try {
+        const r = await fetch(`/api/jobs/${id}/restart`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.detail || ('HTTP ' + r.status));
+        state.activeJobIds.add(id);
+        toast('已重新排队', 'ok');
+        state.jobId = id;
+        showRunning(rowFilename(id, rows));
+        subscribe(id);
+        loadHistory();
+      } catch (err) {
+        toast('重跑失败：' + err.message, 'err');
+      }
+    }));
+
+    body.querySelectorAll('[data-open]').forEach(a => a.addEventListener('click', e => {
+      e.preventDefault();
+      state.jobId = a.dataset.open;
+      showRunning('历史任务');
+      subscribe(state.jobId);
+    }));
+    body.querySelectorAll('[data-view-job]').forEach(a => a.addEventListener('click', e => {
+      e.preventDefault();
+      showDone({ id: a.dataset.viewJob, filename: rowFilename(a.dataset.viewJob, rows), result: rowResult(a.dataset.viewJob, rows) });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }));
+    body.querySelectorAll('[data-dl-job]').forEach(a => a.addEventListener('click', async e => {
+      e.preventDefault();
+      const id = a.dataset.dlJob;
+      state.jobId = id;
+      state.filename = rowFilename(id, rows);
+      await handleDownload('dual');
+    }));
+  } catch {}
+}
+
+function rowFilename(id, rows) {
+  const hit = rows.find(x => x.id === id);
+  return hit ? hit.filename : 'document.pdf';
+}
+function rowResult(id, rows) {
+  const hit = rows.find(x => x.id === id);
+  return hit ? hit.result : null;
+}
+
+/* 标签页切换：切到哪个就渲染哪个 */
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  const v = t.dataset.view;
+  $('viewDual').classList.toggle('hidden', v !== 'dual');
+  $('viewSource').classList.toggle('hidden', v !== 'source');
+  $('viewMono').classList.toggle('hidden', v !== 'mono');
+  state.page = 1;
+  showPage(v);
+}));
+
+/* ---------------- 全局刷新 ---------------- */
+$('refreshAll').addEventListener('click', async () => {
+  const btn = $('refreshAll');
+  btn.disabled = true; btn.textContent = '刷新中…';
+  try {
+    await Promise.all([checkHealth(), loadHistory(), loadGlossaries()]);
+    // 正在看的任务也刷新一下状态
+    if (state.jobId) {
+      try {
+        const d = await (await fetch(`/api/jobs/${state.jobId}`)).json();
+        if (d.status === 'done') showDone(d);
+        else if (d.status === 'error') showFailed(d.error || '任务失败', d);
+        else if (d.status === 'cancelled') showFailed('任务已取消', d, true);
+        else { $('stageName').textContent = d.stage || '进行中'; $('pfill').style.width = (d.progress || 0) + '%'; $('pct').textContent = Math.round(d.progress || 0) + '%'; }
+      } catch {}
+    }
+    toast('已刷新', 'ok');
+  } finally {
+    btn.disabled = false; btn.textContent = '↻ 刷新';
+  }
+});
+
+/* 等待 pywebview 桥接就绪（窗口模式），就绪后提示用户下载方式 */
+window.addEventListener('pywebviewready', () => {
+  $('saveHint').textContent = '窗口模式：点下载会弹出系统「另存为」对话框。';
+});
+
+/* ---------------- 初始化 ---------------- */
+const savedKey = localStorage.getItem('deepseek_key');
+if (savedKey) $('apiKey').value = savedKey;
+checkHealth();
+loadHistory();
+loadGlossaries();
+setInterval(checkHealth, 20000);
+</script>
+</body>
+</html>
