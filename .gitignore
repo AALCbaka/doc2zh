@@ -40,3 +40,4 @@ config.json
 Thumbs.db
 desktop.ini
 ~$*
+dist/doc2zh-v*.zip
