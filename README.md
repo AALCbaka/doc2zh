@@ -16,29 +16,29 @@ Windows 免安装，模型可随包可单下。
 - 输入支持 PPT 和 Word，调本机 Office 转成 PDF
 - 批量提交，带队列和并发控制，并发数按可用内存自动算
 - 术语表有管理界面，能导入 CSV、TSV 或直接粘贴
-- 打包成免安装 exe，模型可随包可单下，放旁边就自动用
+- 打包成免安装 exe，模型可随程序分发，也可以单独下载
 
 ## 安装
 
 ### 免安装 exe
 
-发行包分两个文件：
+从 [Releases](https://github.com/AALCbaka/doc2zh/releases) 下载两个文件：
 
 | 文件 | 大小 | 说明 |
 |---|---|---|
-| `PDF中英对照翻译-vX.Y.Z.zip` | 约 666MB | 主程序，解压即用 |
-| `offline_assets_<hash>.zip` | 213MB | 版面模型和字体，可选 |
+| `doc2zh-vX.Y.Z-win64.zip` | 约 250MB | 主程序，解压即用 |
+| `offline_assets_<hash>.zip` | 约 213MB | 版面模型和字体，可选 |
 
 用法：
 
 1. 把主程序解压到任意目录
 2. 双击 `启动（双击这里）.vbs`
-3. 等窗口出现（首次 40 到 60 秒，程序在恢复模型和扫描历史任务）
+3. 等窗口出现（首次要恢复模型，可能要一分钟左右）
 
 模型资源有两种拿法，二选一：
 
-- **下载上面那个 213MB 的 zip**，直接放在程序目录（和 exe 同级），程序会自动解压，不联网
-- **不下载**，让程序首次运行时自己从 HuggingFace 拉（约 340MB 解压后大小，会自动在官方几个源之间测速）
+- 下载上面那个 213MB 的 zip，直接放在程序目录（和 exe 同级），程序启动时会自动解压，不联网
+- 不下载，让程序首次运行时自己拉（解压后约 340MB，会在官方几个源之间自动测速）
 
 然后在界面里填 DeepSeek 的 API Key（[platform.deepseek.com](https://platform.deepseek.com) 申请），把文件拖进去，点开始翻译。
 
@@ -207,9 +207,9 @@ powershell -ExecutionPolicy Bypass -File build\build.ps1 -SkipAssets
 
 ## 许可
 
-AGPL-3.0。这是必须的，不是选的：项目链接了三个 AGPL-3.0 组件，[BabelDOC](https://github.com/funstory-ai/BabelDOC)、[PDFMathTranslate-next](https://github.com/PDFMathTranslate-next/PDFMathTranslate-next) 和 PyMuPDF，AGPL 第 5(c) 条要求整体沿用同一许可。
+本项目用 AGPL-3.0。它依赖的三个库都是这个许可：[BabelDOC](https://github.com/funstory-ai/BabelDOC)、[PDFMathTranslate-next](https://github.com/PDFMathTranslate-next/PDFMathTranslate-next)、PyMuPDF。AGPL 第 5(c) 条要求整体沿用同一许可，所以这里没有别的选择。
 
-自己用没有额外义务。分发或者公开下载需要提供完整源码、保留 LICENSE 和版权声明、整体继续 AGPL-3.0。改完部署成网页服务的话，还要向使用者提供你改的那版源码（第 13 条）。
+自己用不产生任何义务。往外分发或者提供下载，要附上完整源码、保留 LICENSE 和版权声明、整体继续用 AGPL-3.0。改完部署成网站给别人用的话，还得让使用者能拿到你改的那版源码（第 13 条）。
 
 完整许可证见 [LICENSE](LICENSE)，第三方组件和模型字体的来源见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)，逐条对照见 [docs/开源合规检查报告.md](docs/开源合规检查报告.md)。
 
